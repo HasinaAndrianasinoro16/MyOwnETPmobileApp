@@ -1,0 +1,24 @@
+{
+  "conversionDate": "2025-12-17T05:54:40.590Z",
+  "sourceFiles": {
+    "employees": "D:\\my work\\BFM\\etp-mobile-app-version-1.0\\etp-mobile-app-version-1.0\\mobileApp\\backend\\excel_files\\ETP_T_AGENT.xls",
+    "activities": "D:\\my work\\BFM\\etp-mobile-app-version-1.0\\etp-mobile-app-version-1.0\\mobileApp\\backend\\excel_files\\ETP_PROCESSUS_ACTIVITE_NEW.XLSX"
+  },
+  "outputLocation": "D:\\my work\\BFM\\etp-mobile-app-version-1.0\\etp-mobile-app-version-1.0\\mobileApp\\backend\\data",
+  "employees": {
+    "total": 2080,
+    "male": 1344,
+    "female": 722,
+    "other": 14,
+    "malePercentage": "64.6",
+    "femalePercentage": "34.7"
+  },
+  "activities": {
+    "total": 812
+  },
+  "notes": [
+    "SEXE: 1 = Homme, 2 = Femme",
+    "Format de date: YYYY-MM-DD",
+    "Conversion automatique Excel → JSON"
+  ]
+}
