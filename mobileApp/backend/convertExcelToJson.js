@@ -4,6 +4,8 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 // Pour avoir __dirname en ES Modules
+//resume: ce code sert a modifier les infos dans un CSV en JSON, JSON no vakin'ilay code front et backend pour les data
+//de plus ny donner rht en local daoly pas besoin de base de donnees 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
