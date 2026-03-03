@@ -14,7 +14,7 @@ import FavoritesScreen from '../screens/main/FavoritesScreen';
 import HistoryScreen from '../screens/main/HistoryScreen';
 import SettingsScreen from '../screens/main/SettingsScreen';
 import ActivityListScreen from '../screens/main/ActivityListScreen';
-import NotificationHistoryScreen from "../screens/main/NotificationHistoryScreen";
+import NotificationHistoryScreen from '../screens/main/NotificationHistoryScreen';
 import CompleteTasksScreen from '../screens/main/CompleteTasksScreen';
 
 import { RootStackParamList } from '../types';
@@ -22,137 +22,46 @@ import { NotificationService } from '../services/NotificationService';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
-// Main Stack avec navigation référée
-const MainStack = () => {
-    const { user } = useAuth();
-    const [isNotificationListenerSetup, setIsNotificationListenerSetup] = useState(false);
+// =============================================
+// NAVIGATEUR PRINCIPAL
+// =============================================
+export default function AppNavigator() {
+    const { user, isLoading } = useAuth();
+    // ✅ FIX: navigationRef déclaré ICI et passé directement au NavigationContainer
     const navigationRef = useRef<any>(null);
+    const [isNavReady, setIsNavReady] = useState(false);
 
+    // Setup des notifications une fois que la navigation est prête ET l'user connecté
     useEffect(() => {
-        let cleanupFunction: (() => void) | null = null;
+        if (!isNavReady || !user || !navigationRef.current) return;
+
+        let cleanup: (() => void) | null = null;
 
         const setupNotifications = async () => {
             try {
-                if (navigationRef.current && user && !isNotificationListenerSetup) {
-                    // Configurer l'écouteur de notifications
-                    cleanupFunction = NotificationService.setupNotificationListener(navigationRef.current);
-                    setIsNotificationListenerSetup(true);
+                console.log('🔔 Setup notifications après connexion...');
 
-                    // Vérifier immédiatement les tâches
-                    setTimeout(async () => {
-                        await NotificationService.sendTaskReminder();
-                    }, 3000);
+                // Écouter les clics sur notifications
+                cleanup = NotificationService.setupNotificationListener(navigationRef.current);
 
-                    // Démarrer la vérification automatique
-                    NotificationService.startAutoCheck();
-                }
+                // Synchroniser le push token avec le backend maintenant qu'on a un user
+                await NotificationService.syncPushTokenAfterLogin();
+
+                // Planifier les rappels locaux
+                await NotificationService.scheduleAutomaticReminders();
+
+                console.log('✅ Notifications configurées');
             } catch (error) {
-                console.error('Erreur configuration notifications:', error);
+                console.warn('⚠️ Erreur setup notifications:', error);
             }
         };
 
         setupNotifications();
 
-        // Nettoyage
         return () => {
-            if (cleanupFunction) {
-                cleanupFunction();
-            }
-            setIsNotificationListenerSetup(false);
+            if (cleanup) cleanup();
         };
-    }, [user, isNotificationListenerSetup]);
-
-    return (
-        <Stack.Navigator
-            ref={navigationRef}
-            screenOptions={{
-                headerStyle: { backgroundColor: '#1e293b' },
-                headerTintColor: '#fff',
-                headerTitleStyle: { fontWeight: '600' },
-                cardStyle: { backgroundColor: '#0f172a' },
-            }}>
-            <Stack.Screen
-                name="Home"
-                component={HomeScreen}
-                options={{
-                    headerShown: false
-                }}
-            />
-            <Stack.Screen
-                name="ActivityList"
-                component={ActivityListScreen}
-                options={{
-                    title: 'Liste des activités',
-                    headerBackTitle: 'Accueil'
-                }}
-            />
-            <Stack.Screen
-                name="Favorites"
-                component={FavoritesScreen}
-                options={{
-                    title: 'Mes favoris',
-                    headerBackTitle: 'Accueil'
-                }}
-            />
-            <Stack.Screen
-                name="History"
-                component={HistoryScreen}
-                options={{
-                    title: 'Historique',
-                    headerBackTitle: 'Accueil'
-                }}
-            />
-            <Stack.Screen
-                name="CompleteTasks"
-                component={CompleteTasksScreen}
-                options={{
-                    title: 'Compléter les tâches',
-                    headerBackTitle: 'Accueil'
-                }}
-            />
-            <Stack.Screen
-                name="Notification"
-                component={NotificationHistoryScreen}
-                options={{
-                    title: 'Notifications',
-                    headerBackTitle: 'Accueil'
-                }}
-            />
-            <Stack.Screen
-                name="Settings"
-                component={SettingsScreen}
-                options={{
-                    title: 'Paramètres',
-                    headerBackTitle: 'Accueil'
-                }}
-            />
-        </Stack.Navigator>
-    );
-};
-
-// Auth Stack
-const AuthStack = () => {
-    return (
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen name="CreateAccount" component={CreateAccountScreen} />
-            <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
-        </Stack.Navigator>
-    );
-};
-
-// Main App Navigator
-const AppNavigator = () => {
-    const { isAuthenticated, isLoading } = useAuth();
-
-    useEffect(() => {
-        const handleAuthChange = async () => {
-            if (!isAuthenticated && !isLoading) {
-                await NotificationService.cancelAllNotifications();
-            }
-        };
-        handleAuthChange();
-    }, [isAuthenticated, isLoading]);
+    }, [isNavReady, user]);
 
     if (isLoading) {
         return (
@@ -164,11 +73,38 @@ const AppNavigator = () => {
     }
 
     return (
-        <NavigationContainer>
-            {isAuthenticated ? <MainStack /> : <AuthStack />}
+        // ✅ FIX: ref correctement passée au NavigationContainer
+        <NavigationContainer
+            ref={navigationRef}
+            onReady={() => setIsNavReady(true)}
+        >
+            <Stack.Navigator
+                screenOptions={{ headerShown: false }}
+                initialRouteName={user ? 'Home' : 'Login'}
+            >
+                {user ? (
+                    // Écrans authentifiés
+                    <>
+                        <Stack.Screen name="Home" component={HomeScreen} />
+                        <Stack.Screen name="ActivityList" component={ActivityListScreen} />
+                        <Stack.Screen name="Favorites" component={FavoritesScreen} />
+                        <Stack.Screen name="History" component={HistoryScreen} />
+                        <Stack.Screen name="Settings" component={SettingsScreen} />
+                        <Stack.Screen name="CompleteTasks" component={CompleteTasksScreen} />
+                        <Stack.Screen name="Notification" component={NotificationHistoryScreen} />
+                    </>
+                ) : (
+                    // Écrans non authentifiés
+                    <>
+                        <Stack.Screen name="Login" component={LoginScreen} />
+                        <Stack.Screen name="CreateAccount" component={CreateAccountScreen} />
+                        <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+                    </>
+                )}
+            </Stack.Navigator>
         </NavigationContainer>
     );
-};
+}
 
 const styles = StyleSheet.create({
     loadingContainer: {
@@ -178,10 +114,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#0f172a',
     },
     loadingText: {
-        marginTop: 16,
+        marginTop: 12,
         color: '#94a3b8',
         fontSize: 16,
     },
 });
-
-export default AppNavigator;
