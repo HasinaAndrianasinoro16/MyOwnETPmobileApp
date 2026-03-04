@@ -25,7 +25,7 @@ class ExcelConverter {
         this.jsonOutputDir = config.jsonOutputDir ||
             path.resolve('D:\\my work\\BFM\\etp-mobile-app-version-1.0\\etp-mobile-app-version-1.0\\mobileApp\\backend\\data');
 
-        // CHEMIN ABSOLU VERS LE FRONTEND 
+        // CHEMIN ABSOLU VERS LE FRONTEND
         this.frontendDataDir = config.frontendDataDir ||
             path.resolve('D:\\my work\\BFM\\etp-mobile-app-version-1.0\\etp-mobile-app-version-1.0\\mobileApp\\src\\data');
 
