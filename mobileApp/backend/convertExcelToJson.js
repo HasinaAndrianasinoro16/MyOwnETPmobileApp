@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 
 // Pour avoir __dirname en ES Modules
 //resume: ce code sert a modifier les infos dans un CSV en JSON, JSON no vakin'ilay code front et backend pour les data
-//de plus ny donner rht en local daoly pas besoin de base de donnees 
+//de plus ny donner rht en local daoly pas besoin de base de donnees
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -25,7 +25,7 @@ class ExcelConverter {
         this.jsonOutputDir = config.jsonOutputDir ||
             path.resolve('D:\\my work\\BFM\\etp-mobile-app-version-1.0\\etp-mobile-app-version-1.0\\mobileApp\\backend\\data');
 
-        // CHEMIN ABSOLU VERS LE FRONTEND (optionnel)
+        // CHEMIN ABSOLU VERS LE FRONTEND 
         this.frontendDataDir = config.frontendDataDir ||
             path.resolve('D:\\my work\\BFM\\etp-mobile-app-version-1.0\\etp-mobile-app-version-1.0\\mobileApp\\src\\data');
 
